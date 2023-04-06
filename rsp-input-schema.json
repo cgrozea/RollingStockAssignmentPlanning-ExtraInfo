@@ -1,1 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://planqk.fokus.fraunhofer.de/rsp-input.schema.json",
+  "title": "Data Sets for the PlanQK UC 10 on rolling stock planning (Kapazitaetsplanung)",
+  "$comment": "Created and refined by Dr. Armin Wolf, Fraunhofer FOKUS, Berlin, Germany; further changes by Dr. Patricia Bickert, DB Systel GmbH, Frankfurt, Germany",
+  "type": "object",
+  "properties": {
+    "params": {
+      "description": "an area where options are specified.",
+      "type": "object",
+      "properties": {
+        "w_penalty": {
+          "description": "the mandatory weight for the penalty terms (hard constraints).",
+          "type": "number",
+          "minimum": 0.0
+        },
+        "w_reward": {
+          "description": "the mandatory weight for the primary optimization goal (number of served trips).",
+          "type": "number",
+          "minimum": 0.0
+        },
+        "w_maintenance": {
+          "description": "the mandatory weight for the maintenance terms.",
+          "type": "number",
+          "minimum": 0.0
+        },
+        "w_deadhead": {
+          "description": "the mandatory weight for the deadhead.",
+          "type": "number",
+          "minimum": 0.0
+        },
+        "num_repeats": {
+          "description": "the mandatory number of times the main loop of the algorithm (qbsolv from D-Wave) is repeated with no change in optimal value found before stopping. Default value is 50.",
+            "type": "number",
+            "minimum": 1
+        },
+        "num_attempts": {
+            "description": "the mandatory number of times the whole algorithm is repeated.",
+            "type": "number",
+            "minimum": 1
+        },
+        "timelimit_factor": {
+            "description": "the mandatory time limit [in sec] per run of the qbsolv algorithm (per attempt). Stops execution when the elapsed CPU time equals or exceeds it. Timeout is only checked after completion of the main loop.",
+            "type": "number",
+            "minimum": 1
+          }
+        },
+      "required": [
+        "w_penalty",
+        "w_reward",
+        "w_maintenance",
+        "w_deadhead",
+        "num_repeats",
+        "num_attempts",
+        "timelimit_factor"
+      ],
+      "additionalProperties": false
+    },
+    "data": {
+      "description": "an area where the data are specified.",
+      "type": "object",
+      "properties": {
+        "schedule": {
+          "type": "array",
+          "description": "the non-empty list of trips that should be allocated to trains.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "the mandatory id (floating point number) of the trip.",
+                "type": "number",
+                "minimum": 1.0
+              },
+              "route": {
+                "description": "the mandatory id (floating point number) of the route from departure to destination.",
+                "type": "number",
+                "minimum": 1.0
+              },
+              "starttime": {
+                "description": "the mandatory start time within a day in fractions of the day, e.g. 0.5 represents 12:00 am (noon).",
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              }
+            },
+            "required": [
+              "id",
+              "route",
+              "starttime"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "maintenance": {
+          "type": "array",
+          "description": "the non-empty list of maintenance types.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "description": "the mandatory maintenance type.",
+                "type": "string"
+              },
+              "each [km]": {
+                "description": "the mandatory limit [in km] of the periodic maintenance type.",
+                "type": [
+                  "number",
+                  "string"
+                ],
+                "minimum": 1.0,
+                "maxLength": 0
+              },
+              "after [km]": {
+                "description": "the mandatory limit [in km] of the non-periodic / singular maintenance type.",
+                "type": [
+                  "number",
+                  "string"
+                ],
+                "minimum": 1.0,
+                "maxLength": 0
+              },
+              "duration [min]": {
+                "description": "the mandatory duration [in min] of the  maintenance type.",
+                "type": "number",
+                "minimum": 1.0
+              },
+              "location": {
+                "type": "array",
+                "description": "the non-empty list of locations that should be allocated to trains.",
+                "items": {
+                  "description": "the locations of the maintenance type.",
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "type",
+              "each [km]",
+              "after [km]",
+              "duration [min]",
+              "location"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "trains": {
+          "type": "array",
+          "description": "the non-empty list of trains to which trips should be allocated.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "train": {
+                "description": "the mandatory name (id) of the train.",
+                "type": "string"
+              },
+              "starttime": {
+                "description": "the mandatory earliest time of availability of the train in fractions of a day (24h).",
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "startstation": {
+                "description": "the mandatory initial location of the train.",
+                "type": "string"
+              },
+              "driven_total [km]": {
+                "description": "the mandatory total distance driven so far [in km] of the train.",
+                "type": "number",
+                "minimum": 0.0
+              },
+              "driven_since_last_running_gear_inspection [km]": {
+                "description": "the mandatory distance driven since the last 'Laufwerkskontrolle' [in km] of the train.",
+                "type": "number",
+                "minimum": 0.0
+              }
+            },
+            "required": [
+              "train",
+              "starttime",
+              "startstation",
+              "driven_total [km]",
+              "driven_since_last_running_gear_inspection [km]"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "routes": {
+          "type": "array",
+          "description": "the non-empty list of from-to routes and their properties.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "the mandatory identifier of the route.",
+                "type": "number",
+                "minimum": 1.0
+              },
+              "startstation": {
+                "description": "the mandatory departure location of the route.",
+                "type": "string"
+              },
+              "endstation": {
+                "description": "the mandatory destination location of the route.",
+                "type": "string"
+              },
+              "duration [min]": {
+                "description": "the mandatory travel duration [in min] of the route.",
+                "type": "number",
+                "minimum": 0.0
+              },
+              "length [km]": {
+                "description": "the mandatory travel distance [in km] of the route.",
+                "type": "number",
+                "minimum": 0.0
+              },
+              "duration_empty_trip [min]": {
+                "description": "the mandatory empty driven duration [in min] of the route.",
+                "type": "number",
+                "minimum": 0.0
+              },
+              "length_empty_trip [km]": {
+                "description": "the mandatory empty driven distance [in km] of the route.",
+                "type": "number",
+                "minimum": 0.0
+              }
+            },
+            "required": [
+              "id",
+              "startstation",
+              "endstation",
+              "duration [min]",
+              "length [km]",
+              "duration_empty_trip [min]",
+              "length_empty_trip [km]"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "schedule",
+        "maintenance",
+        "trains",
+        "routes"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "params",
+    "data"
+  ],
+  "additionalProperties": false
+}
 
